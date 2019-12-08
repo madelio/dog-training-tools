@@ -1,12 +1,14 @@
 <h1>Duration</h1>
 
 <section>
-    {{log 'timerText ' timerText}}
     <div>Timer: {{timerText}}</div>
     <div>Duration Level: {{durationText}}</div>
-    <div>Lower Limit: {{lowerLimit}} </div>
-    <div>Upper Limit: {{upperLimit}} </div>
+    <div>Lower Limit: {{input value=lowerLimit}}</div>
+    <div>Upper Limit: {{input value=upperLimit}} </div>
     <div>Iteration: {{iteration}} </div>
-    <button onClick={{action 'incrementDuration'}}>Pass</button>
+    <button onClick={{action 'reset'}}>Reset</button>
+    <button onClick={{action 'passed'}}>Pass</button>
+    <button onClick={{action 'failed'}}>Failed</button>
     <button onClick={{action 'startTimer' duration}}>Start Timer</button>
+    <button onClick={{action 'stopTimer'}}>Stop Timer</button>
 </section>

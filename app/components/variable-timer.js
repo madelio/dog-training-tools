@@ -1,12 +1,16 @@
 import Component from '@ember/component';
-import { computed } from '@ember/object';
+import { computed, setProperties } from '@ember/object';
+
+var PASS_MAX = 3;
 
 export default Component.extend({
     duration: 0,
     lowerLimit: 1,
-    upperLimit: 0,
+    upperLimit: 10,
     iteration: 0,
     timerText: '00:00',
+
+    passCount: 0,
 
     durationText: computed('duration', function () {
         var minutes = Math.floor(this.duration / 60);
@@ -21,13 +25,46 @@ export default Component.extend({
 
 
 
-    actions: {
-        incrementDuration() {
-            this.set('iteration', this.iteration + 1);
-            this.set('upperLimit', this.upperLimit + (this.iteration * 2));
-            this.set('lowerLimit', this.lowerLimit + 1);
+    incrementDuration() {
+        this.set('iteration', this.iteration + 1);
+        this.set('upperLimit', parseInt(this.upperLimit) + (this.iteration * 2));
+        this.set('lowerLimit', parseInt(this.lowerLimit) + 1);
+    },
 
-            this.set('duration', Math.floor(Math.random() * this.upperLimit) + this.lowerLimit);
+    randomizeDuration() {
+        this.set('duration', Math.floor(Math.random() * this.upperLimit) + this.lowerLimit);
+    },
+
+    actions: {
+        passed() {
+            this.set('passCount', this.passCount + 1);
+
+            if (this.passCount === PASS_MAX) {
+                this.set('passCount', 0);
+                this.incrementDuration();
+            }
+
+            this.randomizeDuration();
+        },
+
+        failed() {
+            this.set('passCount', 0);
+        },
+
+        stopTimer() {
+            if (this.intervalId) {
+                clearInterval(this.intervalId);
+            }
+
+        },
+
+        reset() {
+            this.setProperties({
+                lowerLimit: 0,
+                upperLImit: 1,
+                iteration: 0,
+                passCount: 0
+            })
         },
 
         startTimer(duration) {
@@ -43,9 +80,10 @@ export default Component.extend({
                 component.set('timerText', minutes + ":" + seconds);
 
                 if (--timer < 0) {
-                     clearInterval(interval);
-                } 
+                    clearInterval(interval);
+                }
             }, 1000);
+            this.set('intervalId', interval);
         },
     }
 });
