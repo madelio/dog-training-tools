@@ -3,6 +3,7 @@ import { computed, setProperties } from '@ember/object';
 
 var PASS_MAX = 3;
 
+// TODO, add ways to record sessions! with different environments & distractions
 export default Component.extend({
     duration: 0,
     lowerLimit: 1,
@@ -29,6 +30,20 @@ export default Component.extend({
         this.set('iteration', this.iteration + 1);
         this.set('upperLimit', parseInt(this.upperLimit) + (this.iteration * 2));
         this.set('lowerLimit', parseInt(this.lowerLimit) + 1);
+        
+
+        // fix iteration so that
+        /* 
+        fix iteration so that upper limit is a round number
+        upper limit, increase table
+         for limit < 10, increments by 3
+         for 10 < limit < 30, increments by 5
+         for 30 < limit < 60, increments by 10
+         for 60 < limit < 1200, increments by 15
+         for 1200 < limit < 3000, increments by 30
+         for 1300 < limit < 6000, increments by 60
+         for 6000 < limit < 36000, increments by 5 min? 
+        */
     },
 
     randomizeDuration() {
