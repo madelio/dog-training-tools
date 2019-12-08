@@ -1,15 +1,21 @@
 import Component from '@ember/component';
 import { computed, setProperties } from '@ember/object';
+import { inject as service } from '@ember/service';
 
 var PASS_MAX = 3;
+var CLICKER_URL = "https://championofmyheart.com/wp-content/uploads/2014/03/new-relaxation-protocol-day-1.mp3";
 
 // TODO, add ways to record sessions! with different environments & distractions
 export default Component.extend({
+
+    hifi: service(),
+
     duration: 0,
     lowerLimit: 1,
     upperLimit: 10,
     iteration: 0,
     timerText: '00:00',
+    isAutostart: false,
 
     passCount: 0,
 
@@ -27,7 +33,6 @@ export default Component.extend({
 
 
     incrementDuration() {
-        this.set('iteration', this.iteration + 1);
         this.set('upperLimit', parseInt(this.upperLimit) + (this.iteration * 2));
         this.set('lowerLimit', parseInt(this.lowerLimit) + 1);
         
@@ -46,12 +51,20 @@ export default Component.extend({
         */
     },
 
-    randomizeDuration() {
-        this.set('duration', Math.floor(Math.random() * this.upperLimit) + this.lowerLimit);
-    },
+    // randomizeDuration() {
+    //     var duration = Math.floor(Math.random() * this.upperLimit) + this.lowerLimit;
+    //     this.set('duration', duration);
+    //     return duration;
+    // },
 
-    actions: {
-        passed() {
+        autoStartRecurse() {
+            if (this.isAutostart) {
+                this.send('passed');
+                this.send('startTimer', this.duration);
+                // this.autoStartRecurse();
+            } 
+        },
+        passedFunc() {
             this.set('passCount', this.passCount + 1);
 
             if (this.passCount === PASS_MAX) {
@@ -59,7 +72,20 @@ export default Component.extend({
                 this.incrementDuration();
             }
 
-            this.randomizeDuration();
+            // const randomDuration = this.randomizeDuration();
+             var duration = Math.floor(Math.random() * this.upperLimit) + this.lowerLimit;
+             this.set('duration', duration);
+            //return duration;
+
+
+        },
+    actions: {
+        autoStart() {
+            this.toggleProperty('isAutostart');
+            // this.autoStartRecurse();
+        },
+        passed() {
+            this.passedFunc();
         },
 
         failed() {
@@ -74,15 +100,18 @@ export default Component.extend({
         },
 
         reset() {
-            this.setProperties({
-                lowerLimit: 0,
-                upperLImit: 1,
-                iteration: 0,
-                passCount: 0
-            })
+            // this.setProperties({
+            //     lowerLimit: 0,
+            //     upperLimit: 1,
+            //     iteration: 0,
+            //     passCount: 0
+            // })
+                var audio = new Audio('testday1.mp3');
+                audio.play();
         },
 
         startTimer(duration) {
+            this.set('iteration', this.iteration + 1);
             var timer = duration, minutes, seconds;
             var component = this;
             var interval = setInterval(function () {
@@ -95,7 +124,19 @@ export default Component.extend({
                 component.set('timerText', minutes + ":" + seconds);
 
                 if (--timer < 0) {
+                // component.get('hifi').play(CLICKER_URL).then(({sound}) => {
+                //     // sound object
+                //     debugger;
+            
+                //   }).catch(error => {
+            
+                //   })
                     clearInterval(interval);
+                    if (component.isAutostart) {
+                        // var duration = this.pass;
+                        component.passedFunc();
+                        component.send('startTimer', component.duration);
+                    } 
                 }
             }, 1000);
             this.set('intervalId', interval);

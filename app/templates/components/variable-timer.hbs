@@ -11,4 +11,6 @@
     <button onClick={{action 'failed'}}>Failed</button>
     <button onClick={{action 'startTimer' duration}}>Start Timer</button>
     <button onClick={{action 'stopTimer'}}>Stop Timer</button>
+    <label>isAutoStart</label>
+    <Input @type="checkbox" checked={{isAutostart}} @change={{action "autoStart"}} />
 </section>
