@@ -1,9 +1,21 @@
 import Component from '@ember/component';
 import { computed, setProperties } from '@ember/object';
 import { inject as service } from '@ember/service';
+import { later } from '@ember/runloop';
+import {convertTextToTime, convertSecsToHms} from '../utils/time-converter';
 
 var PASS_MAX = 3;
 var CLICKER_URL = "https://championofmyheart.com/wp-content/uploads/2014/03/new-relaxation-protocol-day-1.mp3";
+var LIMITS = [
+    { limit: 10, incrementBy: 1 },
+    { limit: 30, incrementBy: 3 },
+    { limit: 30, incrementBy: 3 },
+    { limit: 60, incrementBy: 3 },
+    { limit: 1200, incrementBy: 3 },
+    { limit: 3000, incrementBy: 3 },
+    { limit: 6000, incrementBy: 3 },
+    { limit: 36000, incrementBy: 3 },
+]
 
 // TODO, add ways to record sessions! with different environments & distractions
 export default Component.extend({
@@ -19,73 +31,53 @@ export default Component.extend({
 
     passCount: 0,
 
+    upperLimitText: computed(function() {
+        return convertSecsToHms(this.upperLimit);
+    }),
     durationText: computed('duration', function () {
-        var minutes = Math.floor(this.duration / 60);
-        var seconds = `${this.duration - minutes * 60} seconds`;
+        return convertSecsToHms(this.duration);
+    }),
 
-        if (this.duration > 60) {
-            return minutes + "mins " + seconds;
+    increment: computed('upperLimit', function() {
+        var limitTable = [
+            { limit: "10s", increment: "3s"},
+            { limit:"30s", increment: "5s"},
+            { limit:"1m", increment: "10s"},
+            { limit:"5m", increment: "15s"},
+            { limit:"15m", increment: "1m"},
+            { limit:"30m", increment: "5m"},
+            { limit:"1h", increment: "10m"},
+            { limit:"2h", increment: "15m"},
+        ]
+
+        for(var limit of limitTable) {
+            if (this.upperLimit < convertTextToTime(limit.limit)) {
+                return convertTextToTime(limit.increment);
+                //return convertTextToTime(limitGroup.increment);
+            }
         }
-
-        return this.duration;
+        return 0;
     }),
 
 
-
     incrementDuration() {
-        this.set('upperLimit', parseInt(this.upperLimit) + (this.iteration * 2));
-        this.set('lowerLimit', parseInt(this.lowerLimit) + 1);
-        
+        this.set('upperLimit', parseInt(this.upperLimit) + this.increment);
+        //this.set('lowerLimit', parseInt(this.lowerLimit) + 1);
 
-        // fix iteration so that
-        /* 
-        fix iteration so that upper limit is a round number
-        upper limit, increase table
-         for limit < 10, increments by 3
-         for 10 < limit < 30, increments by 5
-         for 30 < limit < 60, increments by 10
-         for 60 < limit < 1200, increments by 15
-         for 1200 < limit < 3000, increments by 30
-         for 1300 < limit < 6000, increments by 60
-         for 6000 < limit < 36000, increments by 5 min? 
-        */
+        console.log(this.upperLimit);
     },
 
-    // randomizeDuration() {
-    //     var duration = Math.floor(Math.random() * this.upperLimit) + this.lowerLimit;
-    //     this.set('duration', duration);
-    //     return duration;
-    // },
-
-        autoStartRecurse() {
-            if (this.isAutostart) {
-                this.send('passed');
-                this.send('startTimer', this.duration);
-                // this.autoStartRecurse();
-            } 
+    actions: {
+        autoStart() {
+            this.toggleProperty('isAutostart');
         },
-        passedFunc() {
+        passed() {
             this.set('passCount', this.passCount + 1);
-
             if (this.passCount === PASS_MAX) {
                 this.set('passCount', 0);
                 this.incrementDuration();
             }
-
-            // const randomDuration = this.randomizeDuration();
-             var duration = Math.floor(Math.random() * this.upperLimit) + this.lowerLimit;
-             this.set('duration', duration);
-            //return duration;
-
-
-        },
-    actions: {
-        autoStart() {
-            this.toggleProperty('isAutostart');
-            // this.autoStartRecurse();
-        },
-        passed() {
-            this.passedFunc();
+            this.set('duration', Math.floor(Math.random() * this.upperLimit) + this.lowerLimit);
         },
 
         failed() {
@@ -106,8 +98,10 @@ export default Component.extend({
             //     iteration: 0,
             //     passCount: 0
             // })
-                var audio = new Audio('testday1.mp3');
-                audio.play();
+            //console.log(this.increment);
+            convertTextToTime("1h20m3s");
+            var audio = new Audio('testday1.mp3');
+            audio.play();
         },
 
         startTimer(duration) {
@@ -124,19 +118,21 @@ export default Component.extend({
                 component.set('timerText', minutes + ":" + seconds);
 
                 if (--timer < 0) {
-                // component.get('hifi').play(CLICKER_URL).then(({sound}) => {
-                //     // sound object
-                //     debugger;
-            
-                //   }).catch(error => {
-            
-                //   })
+                    // component.get('hifi').play(CLICKER_URL).then(({sound}) => {
+                    //     // sound object
+                    //     debugger;
+
+                    //   }).catch(error => {
+
+                    //   })
                     clearInterval(interval);
                     if (component.isAutostart) {
                         // var duration = this.pass;
-                        component.passedFunc();
-                        component.send('startTimer', component.duration);
-                    } 
+                        later(() => {
+                            component.send('passed');
+                            component.send('startTimer', component.duration);
+                        }, 5000);
+                    }
                 }
             }, 1000);
             this.set('intervalId', interval);
