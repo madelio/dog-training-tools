@@ -1,4 +1,4 @@
-function convertSecsToHms(d) {
+function convertTimeToHMS(d) {
     d = Number(d);
     var h = Math.floor(d / 3600);
     var m = Math.floor(d % 3600 / 60);
@@ -8,6 +8,38 @@ function convertSecsToHms(d) {
     var mDisplay = m > 0 ? m + "m" : "";
     var sDisplay = s > 0 ? s + "s": "";
     return hDisplay + mDisplay + sDisplay; 
+}
+
+function convertTimeToClockFormat(timer) {
+  var time = Number(timer);
+  var hours = Math.floor(time / 3600);
+  var minutes = Math.floor(time % 3600 / 60);
+  var seconds = Math.floor(time % 3600 % 60);
+
+  var hourDisplay = hours < 10 ? "0" + hours : hours;
+  var minuteDisplay = minutes < 10 ? "0" + minutes : minutes;
+  var secondsDisplay = seconds < 10 ? "0" + seconds : seconds;
+
+  return hourDisplay + ":" + minuteDisplay + ":" + secondsDisplay;
+
+    // d = Number(d);
+    // var h = Math.floor(d / 3600);
+    // var m = Math.floor(d % 3600 / 60);
+    // var s = Math.floor(d % 3600 % 60);
+
+    // var hDisplay = h > 0 ? h +"h" : "";
+    // var mDisplay = m > 0 ? m + "m" : "";
+    // var sDisplay = s > 0 ? s + "s": "";
+    // return hDisplay + mDisplay + sDisplay; 
+
+}
+
+function convertTimeToText(time, type = null) {
+  // if (type == "hms") return convertSecsToHms(time);
+  if (type == "clock") 
+    return convertTimeToClockFormat(time);
+
+  return convertTimeToHMS(time);
 }
 
 function convertMinToSecs(min) {
@@ -40,4 +72,4 @@ function convertTextToTime(text) {
     return seconds;
 }
 
-export {convertTextToTime, convertSecsToHms};
+export {convertTextToTime, convertTimeToText};

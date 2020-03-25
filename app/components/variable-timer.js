@@ -2,7 +2,7 @@ import Component from '@ember/component';
 import { computed, setProperties } from '@ember/object';
 import { inject as service } from '@ember/service';
 import { later } from '@ember/runloop';
-import {convertTextToTime, convertSecsToHms} from '../utils/time-converter';
+import {convertTextToTime, convertTimeToText} from '../utils/time-converter';
 
 var PASS_MAX = 3;
 var CLICKER_URL = "https://championofmyheart.com/wp-content/uploads/2014/03/new-relaxation-protocol-day-1.mp3";
@@ -26,16 +26,16 @@ export default Component.extend({
     lowerLimit: 1,
     upperLimit: 10,
     iteration: 0,
-    timerText: '00:00',
+    timerText: '00:00:00',
     isAutostart: false,
 
-    passCount: 0,
+    timesPassed: 0,
 
     upperLimitText: computed(function() {
-        return convertSecsToHms(this.upperLimit);
+        return convertTimeToText(this.upperLimit);
     }),
     durationText: computed('duration', function () {
-        return convertSecsToHms(this.duration);
+        return convertTimeToText(this.duration);
     }),
 
     increment: computed('upperLimit', function() {
@@ -62,9 +62,7 @@ export default Component.extend({
 
     incrementDuration() {
         this.set('upperLimit', parseInt(this.upperLimit) + this.increment);
-        //this.set('lowerLimit', parseInt(this.lowerLimit) + 1);
-
-        console.log(this.upperLimit);
+        this.set('lowerLimit', parseInt(this.lowerLimit) + (this.increment/2));
     },
 
     actions: {
@@ -72,23 +70,22 @@ export default Component.extend({
             this.toggleProperty('isAutostart');
         },
         passed() {
-            this.set('passCount', this.passCount + 1);
-            if (this.passCount === PASS_MAX) {
-                this.set('passCount', 0);
+            this.set('timesPassed', this.timesPassed+ 1);
+            if (this.timesPassed=== PASS_MAX) {
+                this.set('timesPassed', 0);
                 this.incrementDuration();
             }
             this.set('duration', Math.floor(Math.random() * this.upperLimit) + this.lowerLimit);
         },
 
         failed() {
-            this.set('passCount', 0);
+            this.set('timesPassed', 0);
         },
 
         stopTimer() {
             if (this.intervalId) {
                 clearInterval(this.intervalId);
             }
-
         },
 
         reset() {
@@ -96,7 +93,7 @@ export default Component.extend({
             //     lowerLimit: 0,
             //     upperLimit: 1,
             //     iteration: 0,
-            //     passCount: 0
+            //timesPassed: 0
             // })
             //console.log(this.increment);
             convertTextToTime("1h20m3s");
@@ -106,18 +103,12 @@ export default Component.extend({
 
         startTimer(duration) {
             this.set('iteration', this.iteration + 1);
-            var timer = duration, minutes, seconds;
+            // var timer = duration, minutes, seconds
             var component = this;
             var interval = setInterval(function () {
-                minutes = parseInt(timer / 60, 10);
-                seconds = parseInt(timer % 60, 10);
+                component.set('timerText', convertTimeToText(duration, "clock"));
 
-                minutes = minutes < 10 ? "0" + minutes : minutes;
-                seconds = seconds < 10 ? "0" + seconds : seconds;
-
-                component.set('timerText', minutes + ":" + seconds);
-
-                if (--timer < 0) {
+                if (--duration < 0) {
                     // component.get('hifi').play(CLICKER_URL).then(({sound}) => {
                     //     // sound object
                     //     debugger;
@@ -131,7 +122,7 @@ export default Component.extend({
                         later(() => {
                             component.send('passed');
                             component.send('startTimer', component.duration);
-                        }, 5000);
+                        }, 1000);
                     }
                 }
             }, 1000);
