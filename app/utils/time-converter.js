@@ -21,21 +21,9 @@ function convertTimeToClockFormat(timer) {
   var secondsDisplay = seconds < 10 ? "0" + seconds : seconds;
 
   return hourDisplay + ":" + minuteDisplay + ":" + secondsDisplay;
-
-    // d = Number(d);
-    // var h = Math.floor(d / 3600);
-    // var m = Math.floor(d % 3600 / 60);
-    // var s = Math.floor(d % 3600 % 60);
-
-    // var hDisplay = h > 0 ? h +"h" : "";
-    // var mDisplay = m > 0 ? m + "m" : "";
-    // var sDisplay = s > 0 ? s + "s": "";
-    // return hDisplay + mDisplay + sDisplay; 
-
 }
 
 function convertTimeToText(time, type = null) {
-  // if (type == "hms") return convertSecsToHms(time);
   if (type == "clock") 
     return convertTimeToClockFormat(time);
 
